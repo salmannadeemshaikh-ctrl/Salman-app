@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro-Trade Ultimate | Salman App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- ApexCharts for Professional Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        :root {
+            --primary: #00ff88;
+            --bg: #0b0e11;
+            --card: #161a1e;
+            --red: #ff4d4d;
+            --border: #2b2f36;
+            --text: #ffffff;
+            --text-secondary: #a0a0a0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg) 0%, #0f1419 100%);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* ========== LOGIN OVERLAY ========== */
+        #login-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(11, 14, 17, 0.98);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .login-card {
+            background: linear-gradient(135deg, var(--card) 0%, #1e2328 100%);
+            border: 2px solid var(--primary);
+            padding: 50px 40px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 255, 136, 0.2);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-card h2 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-card h2 i {
+            font-size: 2rem;
+        }
+
+        .login-card p {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        #username-input {
+            width: 100%;
+            padding: 14px;
+            margin: 15px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            outline: none;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        #username-input:focus {
+            border-color: var(--primary);
+            background: rgba(0, 255, 136, 0.05);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+        }
+
+        #username-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, #00dd77 100%);
+            color: var(--bg);
+            padding: 14px;
+            font-weight: 800;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.4);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ========== NAVIGATION ========== */
+        nav {
+            background: linear-gradient(90deg, var(--card) 0%, #1e2328 100%);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 255, 136, 0.1);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .nav-left {
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 1.1rem;
+        }
+
+        .nav-left i {
+            font-size: 1.3rem;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #wallet-balance {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .logout-btn {
+            background: var(--red);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn:hover {
+            background: #ff3333;
+            transform: scale(1.05);
+        }
+
+        /* ========== GRID CONTAINER ========== */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.1);
+        }
+
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card h3 i {
+            font-size: 1.3rem;
+        }
+
+        /* ========== STATS GRID ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 255, 136, 0.05) 100%);
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card p {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-card p.red {
+            color: var(--red);
+        }
+
+        /* ========== CHART ========== */
+        #chart {
+            min-height: 300px;
+            margin-top: 10px;
+        }
+
+        /* ========== OPTION CHAIN TABLE ========== */
+        .option-chain {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .option-chain thead {
+            background: rgba(0, 255, 136, 0.1);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .option-chain th {
+            padding: 12px;
+            text-align: center;
+            color: var(--primary);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .option-chain td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .strike-price {
+            background: rgba(241, 196, 15, 0.1);
+            color: #ffd700;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .btn-buy-ce {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-buy-ce:hover {
+            background: var(--primary);
+            color: var(--bg);
+            transform: scale(1.05);
+        }
+
+        .btn-buy-pe {
+            background: rgba(255, 77, 77, 0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-buy-pe:hover {
+            background: var(--red);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* ========== PORTFOLIO ========== */
+        .portfolio-item {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .portfolio-item.loss {
+            border-left-color: var(--red);
+        }
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .position-type {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+
+        .position-type.ce {
+            background: rgba(0, 255, 136, 0.3);
+            color: var(--primary);
+        }
+
+        .position-type.pe {
+            background: rgba(255, 77, 77, 0.3);
+            color: var(--red);
+        }
+
+        .position-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .pnl-value {
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .btn-exit {
+            width: 100%;
+            background: var(--red);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .btn-exit:hover {
+            background: #ff3333;
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* ========== LEADERBOARD ========== */
+        #leaderboard-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        #leaderboard-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        #leaderboard-list li:last-child {
+            border-bottom: none;
+        }
+
+        .rank-1 {
+            color: #ffd700;
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+
+        .rank-2 {
+            color: #c0c0c0;
+            font-weight: 700;
+        }
+
+        .rank-3 {
+            color: #cd7f32;
+            font-weight: 700;
+        }
+
+        .your-rank {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        /* ========== BUTTONS ========== */
+        .btn-export {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: 700;
+            transition: all 0.3s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-export:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        /* ========== NOTIFICATIONS ========== */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: var(--bg);
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.error {
+            background: var(--red);
+            color: white;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .grid-container {
+                padding: 10px;
+                gap: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .login-card {
+                width: 90%;
+                padding: 40px 25px;
+            }
+
+            .option-chain th, .option-chain td {
+                padding: 8px 4px;
+                font-size: 0.8rem;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00dd77;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay">
+        <div class="login-card">
+            <h2><i class="fas fa-chart-line"></i> PRO-TRADE ULTIMATE</h2>
+            <p>Enter your name to start trading</p>
+            <input type="text" id="username-input" placeholder="Enter Name" onkeypress="if(event.key==='Enter') handleLogin()">
+            <button class="login-btn" onclick="handleLogin()"><i class="fas fa-play"></i> Launch App</button>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="app" class="hidden">
+        <!-- Navigation -->
+        <nav>
+            <div class="nav-left">
+                <i class="fas fa-chart-line"></i> PRO-TRADE | <span id="user-name">User</span>
+            </div>
+            <div class="nav-right">
+                <div>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">Balance:</span>
+                    <span id="wallet-balance">₹1,000,000</span>
+                </div>
+                <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Reset</button>
+            </div>
+        </nav>
+
+        <!-- Main Grid -->
+        <div class="grid-container">
+            <!-- LEFT COLUMN -->
+            <div>
+                <!-- Statistics Summary -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Spot Price</h4>
+                        <p id="nifty-price">₹22,450</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Total P&L</h4>
+                        <p id="total-pnl">₹0.00</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Win Rate</h4>
+                        <p id="win-rate">0%</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Trades</h4>
+                        <p id="trade-count">0</p>
+                    </div>
+                </div>
+
+                <!-- Price Chart -->
+                <div class="card">
+                    <h3><i class="fas fa-chart-area"></i> Nifty 50 Performance (Live)</h3>
+                    <div id="chart"></div>
+                </div>
+
+                <!-- Option Chain -->
+                <div class="card" style="margin-top: 20px;">
+                    <h3><i class="fas fa-list"></i> Option Chain</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="option-chain">
+                            <thead>
+                                <tr>
+                                    <th>CALL (CE)</th>
+                                    <th>STRIKE</th>
+                                    <th>PUT (PE)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chain-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div>
+                <!-- Portfolio -->
+                <div class="card">
+                    <h3><i class="fas fa-briefcase"></i> Active Positions</h3>
+                    <div id="portfolio-list" style="max-height: 350px; overflow-y: auto;"></div>
+                    <button class="btn-export" onclick="exportHistory()"><i class="fas fa-download"></i> Export Trade History</button>
+                </div>
+
+                <!-- Leaderboard -->
+                <div class="card" style="margin-top: 20px;">
+                    <h3><i class="fas fa-trophy"></i> Global Leaderboard</h3>
+                    <ul id="leaderboard-list">
+                        <li class="rank-1"><span><i class="fas fa-crown"></i> Rakesh J.</span> <span>+₹4.5L</span></li>
+                        <li class="rank-2"><span>🥈 Priya K.</span> <span>+₹3.2L</span></li>
+                        <li class="rank-3"><span>🥉 Aniket S.</span> <span>+₹2.1L</span></li>
+                        <li class="your-rank"><span id="your-rank-name">You</span> <span id="user-rank-profit">₹0</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ STATE MANAGEMENT ============
+        let userData = JSON.parse(localStorage.getItem('proTradev2')) || null;
+        let priceData = [];
+        let niftyPrice = 22450;
+        let tradeHistory = [];
+        let chart = null;
+
+        // ============ APEX CHARTS SETUP ============
+        function initChart() {
+            const options = {
+                series: [{ name: 'Nifty 50', data: [22450] }],
+                chart: {
+                    type: 'area',
+                    height: 300,
+                    animations: { enabled: false },
+                    toolbar: { show: false },
+                    background: 'transparent'
+                },
+                colors: ['#00ff88'],
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 2 },
+                fill: { type: 'gradient', gradient: { opacityFrom: 0.3, opacityTo: 0 } },
+                xaxis: { labels: { show: false } },
+                yaxis: { labels: { style: { colors: '#a0a0a0' } } },
+                grid: { borderColor: '#2b2f36' },
+                theme: { mode: 'dark' }
+            };
+            chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        }
+
+        // ============ LOGIN ============
+        function handleLogin() {
+            const name = document.getElementById('username-input').value.trim();
+            if (!name) {
+                showNotification("Please enter your name!", "error");
+                return;
+            }
+            userData = {
+                name: name,
+                balance: 1000000,
+                positions: [],
+                totalTrades: 0,
+                wins: 0,
+                createdAt: new Date().toLocaleString()
+            };
+            localStorage.setItem('proTradev2', JSON.stringify(userData));
+            initApp();
+        }
+
+        function handleLogout() {
+            if (confirm("Reset your account and all trades?")) {
+                localStorage.removeItem('proTradev2');
+                location.reload();
+            }
+        }
+
+        // ============ APP INITIALIZATION ============
+        function initApp() {
+            document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('user-name').innerText = userData.name;
+            document.getElementById('your-rank-name').innerText = userData.name;
+
+            initChart();
+            updateMarket();
+            setInterval(updateMarket, 1000);
+        }
+
+        // ============ MARKET UPDATE ============
+        function updateMarket() {
+            // Realistic price movement
+            niftyPrice += (Math.random() - 0.5) * 15;
+            niftyPrice = Math.max(20000, Math.min(niftyPrice, 25000));
+
+            priceData.push(parseFloat(niftyPrice.toFixed(2)));
+            if (priceData.length > 50) priceData.shift();
+
+            document.getElementById('nifty-price').innerText = "₹" + niftyPrice.toFixed(2);
+
+            if (chart) {
+                chart.updateSeries([{ data: priceData }]);
+            }
+
+            renderChain();
+            renderPortfolio();
+        }
+
+        // ============ OPTION CHAIN RENDERING ============
+        function renderChain() {
+            const body = document.getElementById('chain-body');
+            let atm = Math.round(niftyPrice / 50) * 50;
+            let html = '';
+
+            for (let i = -3; i <= 3; i++) {
+                const strike = atm + (i * 50);
+                const ce = Math.max(5, (niftyPrice - strike) + 100 + (Math.random() * 5)).toFixed(2);
+                const pe = Math.max(5, (strike - niftyPrice) + 100 + (Math.random() * 5)).toFixed(2);
+
+                html += `
+                    <tr>
+                        <td><button class="btn-buy-ce" onclick="buy('${strike}', 'CE', ${ce})">₹${ce}</button></td>
+                        <td class="strike-price">${strike}</td>
+                        <td><button class="btn-buy-pe" onclick="buy('${strike}', 'PE', ${pe})">₹${pe}</button></td>
+                    </tr>
+                `;
+            }
+            body.innerHTML = html;
+        }
+
+        // ============ BUY FUNCTION ============
+        function buy(strike, type, price) {
+            const cost = price * 50;
+            if (userData.balance < cost) {
+                showNotification("❌ Insufficient Margin!", "error");
+                return;
+            }
+
+            userData.balance -= cost;
+            userData.positions.push({
+                strike: parseInt(strike),
+                type: type,
+                entry: parseFloat(price),
+                qty: 50,
+                time: new Date().toLocaleTimeString('en-IN')
+            });
+            userData.totalTrades++;
+            save();
+            showNotification(`✓ ${type} ${strike} Bought @ ₹${price}`, "success");
+        }
+
+        // ============ PORTFOLIO RENDERING ============
+        function renderPortfolio() {
+            const list = document.getElementById('portfolio-list');
+            let html = '';
+            let totalPnL = 0;
+
+            if (userData.positions.length === 0) {
+                list.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><br>No Active Positions</div>';
+                document.getElementById('total-pnl').innerText = "₹0.00";
+                document.getElementById('user-rank-profit').innerText = "₹0";
+                return;
+            }
+
+            userData.positions.forEach((pos, index) => {
+                const ltp = (pos.type === 'CE') ?
+                    Math.max(5, niftyPrice - pos.strike + 100) :
+                    Math.max(5, pos.strike - niftyPrice + 100);
+                const pnl = (ltp - pos.entry) * pos.qty;
+                const pnlPercent = ((pnl / (pos.entry * pos.qty)) * 100).toFixed(1);
+                totalPnL += pnl;
+
+                const itemClass = pnl >= 0 ? 'portfolio-item' : 'portfolio-item loss';
+                const pnlClass = pnl >= 0 ? 'primary' : 'red';
+
+                html += `
+                    <div class="${itemClass}">
+                        <div class="position-header">
+                            <span>${pos.strike} <span class="position-type ${pos.type.toLowerCase()}">${pos.type}</span></span>
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">${pos.time}</span>
+                        </div>
+                        <div class="position-info">
+                            <div>Entry: ₹${pos.entry.toFixed(2)}</div>
+                            <div>Current: ₹${ltp.toFixed(2)}</div>
+                            <div>Qty: ${pos.qty}</div>
+                            <div>P&L: <span class="pnl-value ${pnlClass}">${pnl >= 0 ? '+' : ''}₹${pnl.toFixed(2)}</span></div>
+                        </div>
+                        <button class="btn-exit" onclick="exit(${index}, ${ltp})">EXIT @ ₹${ltp.toFixed(2)}</button>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+
+            // Update stats
+            document.getElementById('total-pnl').innerText = (totalPnL >= 0 ? '+' : '') + "₹" + totalPnL.toFixed(2);
+            document.getElementById('user-rank-profit').innerText = (totalPnL >= 0 ? '+' : '') + "₹" + totalPnL.toFixed(0);
+            document.getElementById('trade-count').innerText = userData.totalTrades;
+            document.getElementById('wallet-balance').innerText = "₹" + userData.balance.toLocaleString();
+
+            // Calculate win rate
+            if (userData.totalTrades > 0) {
+                const winRate = (userData.wins / userData.totalTrades * 100).toFixed(0);
+                document.getElementById('win-rate').innerText = winRate + "%";
+            }
+        }
+
+        // ============ EXIT TRADE ============
+        function exit(index, ltp) {
+            const pos = userData.positions[index];
+            const pnl = (ltp - pos.entry) * pos.qty;
+
+            if (pnl > 0) userData.wins++;
+
+            userData.balance += (pos.qty * ltp);
+            tradeHistory.push({
+                strike: pos.strike,
+                type: pos.type,
+                entry: pos.entry,
+                exit: ltp,
+                pnl: pnl,
+                time: new Date().toLocaleString('en-IN')
+            });
+
+            userData.positions.splice(index, 1);
+            save();
+
+            const pnlText = pnl >= 0 ? `+₹${pnl.toFixed(2)}` : `-₹${Math.abs(pnl).toFixed(2)}`;
+            showNotification(`✓ Position Closed | P&L: ${pnlText}`, "success");
+        }
+
+        // ============ EXPORT TO CSV ============
+        function exportHistory() {
+            if (tradeHistory.length === 0) {
+                showNotification("❌ No trades to export!", "error");
+                return;
+            }
+
+            let csv = "Strike,Type,Entry Price,Exit Price,P&L,Timestamp\n";
+            tradeHistory.forEach(trade => {
+                csv += `${trade.strike},${trade.type},${trade.entry},${trade.exit},${trade.pnl},${trade.time}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', `trade_history_${new Date().getTime()}.csv`);
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showNotification("✓ Trade history exported successfully!", "success");
+        }
+
+        // ============ UTILITY FUNCTIONS ============
+        function save() {
+            localStorage.setItem('proTradev2', JSON.stringify(userData));
+        }
+
+        function showNotification(message, type = 'success') {
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.innerHTML = message;
+            document.body.appendChild(notif);
+
+            setTimeout(() => {
+                notif.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notif.remove(), 300);
+            }, 2500);
+        }
+
+        // ============ INITIALIZATION ============
+        if (userData) {
+            initApp();
+        }
+
+        console.log('🚀 Pro-Trade Ultimate Loaded Successfully');
+    </script>
+</body>
+</html>
