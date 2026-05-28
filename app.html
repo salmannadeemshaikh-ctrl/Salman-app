@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro-Trade Terminal - Trading Application</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 1rem;
+            padding: 1rem;
+            min-height: 100vh;
+            background-color: var(--dark-bg);
+        }
+
+        .panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        .panel h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric-box {
+            background-color: rgba(0, 255, 136, 0.1);
+            border-left: 3px solid var(--primary-color);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .metric-value {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .metric-value.negative {
+            color: var(--secondary-color);
+        }
+
+        .chain-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .price-button {
+            padding: 0.5rem;
+            background-color: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .price-button:hover {
+            background-color: var(--primary-color);
+            color: var(--dark-bg);
+        }
+
+        .strike-badge {
+            background-color: var(--accent-color);
+            color: var(--dark-bg);
+            padding: 0.5rem;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .position-item {
+            background-color: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 5px;
+        }
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .position-type {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .position-type.ce {
+            background-color: rgba(0, 255, 136, 0.3);
+            color: var(--primary-color);
+        }
+
+        .position-type.pe {
+            background-color: rgba(255, 77, 77, 0.3);
+            color: var(--secondary-color);
+        }
+
+        .position-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .position-pnl {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .exit-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .exit-btn:hover {
+            background-color: #ff3333;
+        }
+
+        .chain-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            animation: pulse 2s infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .no-positions {
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+
+            .panel {
+                max-height: none;
+            }
+        }
+
+        .info-banner {
+            background-color: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .info-banner i {
+            margin-top: 0.2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-chart-line"></i> Pro-Trade Terminal
+            </a>
+            <div style="display: flex; gap: 1rem;">
+                <span style="color: var(--text-secondary);">Live Trading</span>
+                <a href="index.html" style="color: var(--primary-color); text-decoration: none;">← Back to Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="app-container">
+        <!-- Left Panel: Market Data -->
+        <div class="panel">
+            <h3><i class="fas fa-chart-line"></i> Market Overview</h3>
+            
+            <div class="metric-box">
+                <div class="metric-label">NIFTY 50 SPOT</div>
+                <div class="metric-value" id="spotPrice">₹22,450.00</div>
+            </div>
+
+            <div class="metric-box">
+                <div class="metric-label">24H Change</div>
+                <div class="metric-value" id="spotChange">+125.50 (+0.56%)</div>
+            </div>
+
+            <div class="metric-box">
+                <div class="metric-label">Available Margin</div>
+                <div class="metric-value" id="wallet">₹10,00,000.00</div>
+            </div>
+
+            <div class="info-banner">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Paper Trading:</strong> Virtual capital. 100% risk-free practice.
+                </div>
+            </div>
+
+            <h3><i class="fas fa-history"></i> Trade History</h3>
+            <div id="tradeHistory" style="font-size: 0.85rem; color: var(--text-secondary);">
+                <p>No trades executed yet.</p>
+            </div>
+        </div>
+
+        <!-- Center Panel: Option Chain -->
+        <div class="panel">
+            <h3><span class="status-indicator"></span> Option Chain</h3>
+            
+            <div class="chain-header">
+                <div>CALL (CE)</div>
+                <div>STRIKE</div>
+                <div>PUT (PE)</div>
+            </div>
+
+            <div id="optionChain" style="max-height: 70vh; overflow-y: auto;">
+                <!-- Options will be populated here -->
+            </div>
+        </div>
+
+        <!-- Right Panel: Portfolio -->
+        <div class="panel">
+            <h3><i class="fas fa-briefcase"></i> My Positions</h3>
+
+            <div class="metric-box">
+                <div class="metric-label">Total Positions</div>
+                <div class="metric-value" id="positionCount">0</div>
+            </div>
+
+            <div class="metric-box">
+                <div class="metric-label">Unrealized P&L</div>
+                <div class="metric-value" id="totalPnL">₹0.00</div>
+            </div>
+
+            <div id="positions" style="max-height: 60vh; overflow-y: auto;">
+                <div class="no-positions">No active positions</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let state = {
+            wallet: 1000000,
+            positions: [],
+            spotPrice: 22450,
+            tradeHistory: []
+        };
+
+        // Initialize
+        function init() {
+            updateMarketData();
+            generateOptionChain();
+            setInterval(updateMarketData, 1000);
+            setInterval(generateOptionChain, 1000);
+        }
+
+        // Update Market Data
+        function updateMarketData() {
+            // Simulate price movement
+            state.spotPrice = 22450 + (Math.random() - 0.5) * 100;
+            
+            document.getElementById('spotPrice').textContent = 
+                `₹${state.spotPrice.toFixed(2)}`;
+            
+            const change = (Math.random() - 0.5) * 200;
+            const changePercent = ((change / state.spotPrice) * 100).toFixed(2);
+            
+            document.getElementById('spotChange').textContent = 
+                `${change > 0 ? '+' : ''}₹${change.toFixed(2)} (${changePercent}%)`;
+            
+            document.getElementById('wallet').textContent = 
+                `₹${state.wallet.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+
+            // Update P&L
+            let totalPnL = 0;
+            state.positions.forEach(pos => {
+                const currentLTP = generatePriceForStrike(pos.strike, pos.type);
+                pos.currentLTP = currentLTP;
+                totalPnL += (currentLTP - pos.entry) * pos.qty;
+            });
+
+            document.getElementById('totalPnL').textContent = 
+                `₹${totalPnL.toFixed(2)}`;
+            document.getElementById('totalPnL').className = 
+                `metric-value ${totalPnL < 0 ? 'negative' : ''}`;
+
+            document.getElementById('positionCount').textContent = state.positions.length;
+        }
+
+        // Generate prices based on strike
+        function generatePriceForStrike(strike, type) {
+            const diff = Math.abs(state.spotPrice - strike);
+            let basePrice = Math.max(5, 120 - diff / 50);
+            return basePrice + (Math.random() - 0.5) * 4;
+        }
+
+        // Generate Option Chain
+        function generateOptionChain() {
+            const baseStrike = Math.round(state.spotPrice / 50) * 50;
+            const container = document.getElementById('optionChain');
+            
+            let html = '';
+
+            for (let i = -5; i <= 5; i++) {
+                const strike = baseStrike + (i * 50);
+                const cePrice = generatePriceForStrike(strike, 'CE');
+                const pePrice = generatePriceForStrike(strike, 'PE');
+
+                html += `
+                    <div class="chain-row">
+                        <button class="price-button" onclick="buyPosition(${strike}, 'CE', ${cePrice})">
+                            ₹${cePrice.toFixed(1)}
+                        </button>
+                        <div class="strike-badge">${strike}</div>
+                        <button class="price-button" onclick="buyPosition(${strike}, 'PE', ${pePrice})">
+                            ₹${pePrice.toFixed(1)}
+                        </button>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Buy Position
+        function buyPosition(strike, type, entryPrice) {
+            const cost = 50 * entryPrice; // 1 lot = 50 qty
+
+            if (state.wallet < cost) {
+                alert('Insufficient margin!');
+                return;
+            }
+
+            state.wallet -= cost;
+            state.positions.push({
+                strike,
+                type,
+                qty: 50,
+                entry: entryPrice,
+                currentLTP: entryPrice,
+                timestamp: new Date()
+            });
+
+            // Add to history
+            state.tradeHistory.unshift(`BUY ${strike} ${type} @ ₹${entryPrice.toFixed(1)}`);
+            if (state.tradeHistory.length > 5) state.tradeHistory.pop();
+
+            updateTradeHistory();
+            updatePositions();
+            
+            showNotification(`✓ ${type} Bought @ ₹${entryPrice.toFixed(1)}`);
+        }
+
+        // Exit Position
+        function exitPosition(index) {
+            const pos = state.positions[index];
+            const exitPrice = pos.currentLTP;
+            const revenue = pos.qty * exitPrice;
+
+            state.wallet += revenue;
+            const pnl = (exitPrice - pos.entry) * pos.qty;
+
+            state.tradeHistory.unshift(`SELL ${pos.strike} ${pos.type} @ ₹${exitPrice.toFixed(1)} (P&L: ₹${pnl.toFixed(2)})`);
+            if (state.tradeHistory.length > 5) state.tradeHistory.pop();
+
+            state.positions.splice(index, 1);
+            
+            updateTradeHistory();
+            updatePositions();
+            
+            showNotification(`✓ Position Closed (P&L: ₹${pnl.toFixed(2)})`);
+        }
+
+        // Update Positions Display
+        function updatePositions() {
+            const container = document.getElementById('positions');
+
+            if (state.positions.length === 0) {
+                container.innerHTML = '<div class="no-positions">No active positions</div>';
+                return;
+            }
+
+            let html = '';
+            state.positions.forEach((pos, idx) => {
+                const pnl = (pos.currentLTP - pos.entry) * pos.qty;
+                const pnlClass = pnl >= 0 ? 'positive' : 'negative';
+                const pnlColor = pnl >= 0 ? 'var(--primary-color)' : 'var(--secondary-color)';
+
+                html += `
+                    <div class="position-item">
+                        <div class="position-header">
+                            <span>NIFTY ${pos.strike}</span>
+                            <span class="position-type ${pos.type.toLowerCase()}">${pos.type}</span>
+                        </div>
+                        <div class="position-details">
+                            <div>Entry: ₹${pos.entry.toFixed(1)}</div>
+                            <div>Current: ₹${pos.currentLTP.toFixed(1)}</div>
+                            <div>Qty: ${pos.qty}</div>
+                            <div>Margin: ₹${(pos.entry * pos.qty).toFixed(0)}</div>
+                        </div>
+                        <div class="position-pnl" style="color: ${pnlColor};">
+                            P&L: ₹${pnl.toFixed(2)}
+                        </div>
+                        <button class="exit-btn" onclick="exitPosition(${idx})">EXIT</button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Update Trade History
+        function updateTradeHistory() {
+            const container = document.getElementById('tradeHistory');
+            if (state.tradeHistory.length === 0) {
+                container.innerHTML = '<p>No trades executed yet.</p>';
+                return;
+            }
+
+            let html = state.tradeHistory.map(trade => 
+                `<div style="padding: 0.5rem; border-bottom: 1px solid var(--border-color);">${trade}</div>`
+            ).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Show Notification
+        function showNotification(message) {
+            const notif = document.createElement('div');
+            notif.textContent = message;
+            notif.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background-color: var(--primary-color);
+                color: var(--dark-bg);
+                padding: 1rem 1.5rem;
+                border-radius: 5px;
+                font-weight: bold;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 2000);
+        }
+
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Start application
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
