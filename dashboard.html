@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro-Trade Terminal | Dashboard</title>
+    <link rel="stylesheet" href="dashboard-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00ff88;
+            --danger: #ff4d4d;
+            --warning: #ffd700;
+            --dark: #0b0e11;
+            --darker: #0a0d10;
+            --card: #161a1e;
+            --border: #2b2f36;
+            --text: #ffffff;
+            --text-secondary: #a0a0a0;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark) 0%, #1a1e23 100%);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* ========== LOGIN OVERLAY ========== */
+        #login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 14, 17, 0.99);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-box {
+            background: linear-gradient(135deg, var(--card) 0%, #1e2328 100%);
+            padding: 50px 40px;
+            border-radius: 15px;
+            border: 2px solid var(--primary);
+            text-align: center;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 20px 60px rgba(0, 255, 136, 0.2);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-box h2 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-box h2 i {
+            font-size: 2rem;
+        }
+
+        .login-box p {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 14px;
+            margin: 15px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 8px;
+            outline: none;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .login-box input:focus {
+            border-color: var(--primary);
+            background: rgba(0, 255, 136, 0.05);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+        }
+
+        .login-box input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, var(--primary) 0%, #00dd77 100%);
+            color: var(--dark);
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-start:active {
+            transform: translateY(0);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ========== MAIN TERMINAL ========== */
+        #main-terminal {
+            min-height: 100vh;
+        }
+
+        nav {
+            background: linear-gradient(90deg, var(--card) 0%, #1e2328 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 255, 136, 0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #wallet-balance {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .logout-btn {
+            background: var(--danger);
+            color: white;
+            padding: 8px 15px;
+            font-size: 0.85rem;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .logout-btn:hover {
+            background: #ff3333;
+            transform: scale(1.05);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ========== STATS BAR ========== */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 255, 136, 0.05) 100%);
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card p {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-card p.positive {
+            color: var(--primary);
+        }
+
+        .stat-card p.negative {
+            color: var(--danger);
+        }
+
+        /* ========== MAIN LAYOUT ========== */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .panel-header i {
+            font-size: 1.3rem;
+        }
+
+        /* ========== OPTION CHAIN TABLE ========== */
+        .option-chain {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .option-chain thead {
+            background: rgba(0, 255, 136, 0.1);
+            position: sticky;
+            top: 0;
+        }
+
+        .option-chain th {
+            padding: 12px;
+            text-align: center;
+            color: var(--primary);
+            font-weight: 800;
+            border-bottom: 2px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .option-chain td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .strike-price {
+            background: rgba(241, 196, 15, 0.1);
+            color: var(--warning);
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .btn-buy {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn-buy:hover {
+            background: var(--primary);
+            color: var(--dark);
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-buy:active {
+            transform: scale(0.95);
+        }
+
+        /* ========== PORTFOLIO ========== */
+        #portfolio-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .position-item {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .position-type {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .position-type.ce {
+            background: rgba(0, 255, 136, 0.3);
+            color: var(--primary);
+        }
+
+        .position-type.pe {
+            background: rgba(255, 77, 77, 0.3);
+            color: var(--danger);
+        }
+
+        .position-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .position-pnl {
+            font-weight: 800;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .position-pnl.positive {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .position-pnl.negative {
+            background: rgba(255, 77, 77, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-exit {
+            width: 100%;
+            padding: 8px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .btn-exit:hover {
+            background: #ff3333;
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 10px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* ========== NOTIFICATIONS ========== */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        .notification.success {
+            background: var(--primary);
+            color: var(--dark);
+            border-left: 4px solid var(--dark);
+        }
+
+        .notification.error {
+            background: var(--danger);
+            color: white;
+            border-left: 4px solid white;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ========== SCROLLBAR ========== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00dd77;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .nav-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .login-box {
+                width: 90%;
+                padding: 40px 25px;
+            }
+
+            .option-chain th, .option-chain td {
+                padding: 8px 4px;
+                font-size: 0.8rem;
+            }
+
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .positive {
+            color: var(--primary);
+        }
+
+        .negative {
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN SECTION -->
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2><i class="fas fa-chart-line"></i> PRO-TRADE</h2>
+            <p>Enter your name to start trading</p>
+            <input type="text" id="username-input" placeholder="Your Name" onkeypress="if(event.key==='Enter') handleLogin()">
+            <button class="btn-start" onclick="handleLogin()">Start Trading</button>
+        </div>
+    </div>
+
+    <!-- MAIN TERMINAL (HIDDEN BY DEFAULT) -->
+    <div id="main-terminal" class="hidden">
+        <!-- Navigation -->
+        <nav>
+            <div class="logo">
+                <i class="fas fa-chart-line"></i> PRO-TRADE | <span id="display-name" style="color: white; font-weight: normal;">User</span>
+            </div>
+            <div class="nav-right">
+                <div>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">Balance:</span>
+                    <span id="wallet-balance"> ₹1,000,000</span>
+                </div>
+                <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Reset Account</button>
+            </div>
+        </nav>
+
+        <!-- Main Container -->
+        <div class="container">
+            <!-- Stats Bar -->
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <h3>NIFTY 50 LIVE</h3>
+                    <p id="nifty-price">₹22,450.00</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Positions</h3>
+                    <p id="position-count">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Unrealized P&L</h3>
+                    <p id="total-pnl" class="positive">₹0.00</p>
+                </div>
+            </div>
+
+            <!-- Main Layout -->
+            <div class="main-layout">
+                <!-- Option Chain -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <i class="fas fa-list"></i> Option Chain (NIFTY 50)
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="option-chain">
+                            <thead>
+                                <tr>
+                                    <th>CALL BUY</th>
+                                    <th>STRIKE</th>
+                                    <th>PUT BUY</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chain-body">
+                                <!-- Data injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- My Positions -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <i class="fas fa-briefcase"></i> My Positions
+                    </div>
+                    <div id="portfolio-list" style="max-height: 500px; overflow-y: auto;">
+                        <!-- Positions injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ STATE MANAGEMENT ============
+        let userData = JSON.parse(localStorage.getItem('proTradeUser')) || null;
+        let niftyPrice = 22450.50;
+        let priceHistory = [];
+
+        // ============ LOGIN/LOGOUT LOGIC ============
+        function handleLogin() {
+            const name = document.getElementById('username-input').value.trim();
+            if (name === "") {
+                showNotification("Please enter your name", "error");
+                return;
+            }
+
+            userData = {
+                name: name,
+                balance: 1000000,
+                positions: [],
+                createdAt: new Date().toLocaleString()
+            };
+            saveData();
+            initTerminal();
+        }
+
+        function handleLogout() {
+            if (confirm("Are you sure? This will reset your balance and trades!")) {
+                localStorage.removeItem('proTradeUser');
+                location.reload();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('proTradeUser', JSON.stringify(userData));
+        }
+
+        // ============ TERMINAL INITIALIZATION ============
+        function initTerminal() {
+            if (!userData) return;
+            document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('main-terminal').classList.remove('hidden');
+            document.getElementById('display-name').innerText = userData.name;
+            updateWalletDisplay();
+
+            setInterval(updateMarket, 1000);
+            updateMarket();
+        }
+
+        // ============ MARKET UPDATE ============
+        function updateMarket() {
+            // Realistic price movement
+            niftyPrice += (Math.random() - 0.5) * 10;
+            niftyPrice = Math.max(20000, Math.min(niftyPrice, 25000));
+
+            priceHistory.push(niftyPrice);
+            if (priceHistory.length > 100) priceHistory.shift();
+
+            document.getElementById('nifty-price').innerText = "₹" + niftyPrice.toFixed(2);
+
+            renderOptionChain();
+            renderPortfolio();
+        }
+
+        // ============ OPTION CHAIN RENDERING ============
+        function renderOptionChain() {
+            const tableBody = document.getElementById('chain-body');
+            let html = '';
+            let atmStrike = Math.round(niftyPrice / 50) * 50;
+
+            for (let i = -4; i <= 4; i++) {
+                const strike = atmStrike + (i * 50);
+                const cePrice = Math.max(5, (niftyPrice - strike) + 120 + (Math.random() * 5)).toFixed(2);
+                const pePrice = Math.max(5, (strike - niftyPrice) + 120 + (Math.random() * 5)).toFixed(2);
+
+                html += `
+                    <tr>
+                        <td><button class="btn-buy" onclick="executeTrade('${strike}', 'CE', ${cePrice})">₹${cePrice}</button></td>
+                        <td class="strike-price">${strike}</td>
+                        <td><button class="btn-buy" onclick="executeTrade('${strike}', 'PE', ${pePrice})">₹${pePrice}</button></td>
+                    </tr>
+                `;
+            }
+            tableBody.innerHTML = html;
+        }
+
+        // ============ TRADE EXECUTION ============
+        function executeTrade(strike, type, price) {
+            const cost = 50 * price;
+
+            if (userData.balance < cost) {
+                showNotification("❌ Insufficient Balance! Need: ₹" + cost.toLocaleString(), "error");
+                return;
+            }
+
+            userData.balance -= cost;
+            userData.positions.push({
+                id: Date.now(),
+                strike: parseInt(strike),
+                type: type,
+                entry: parseFloat(price),
+                qty: 50,
+                entryTime: new Date()
+            });
+
+            saveData();
+            updateWalletDisplay();
+            renderPortfolio();
+            showNotification(`✓ ${type} ${strike} Bought @ ₹${price}`, "success");
+        }
+
+        // ============ PORTFOLIO RENDERING ============
+        function renderPortfolio() {
+            const portDiv = document.getElementById('portfolio-list');
+            let html = '';
+            let totalPnL = 0;
+
+            if (userData.positions.length === 0) {
+                portDiv.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><br>No open positions</div>';
+                document.getElementById('position-count').innerText = '0';
+                document.getElementById('total-pnl').innerText = '₹0.00';
+                return;
+            }
+
+            userData.positions.forEach((pos, index) => {
+                const currentLtp = (pos.type === 'CE') ?
+                    Math.max(5, (niftyPrice - pos.strike) + 120) :
+                    Math.max(5, (pos.strike - niftyPrice) + 120);
+
+                const pnl = (currentLtp - pos.entry) * pos.qty;
+                const pnlPercent = ((pnl / (pos.entry * pos.qty)) * 100).toFixed(2);
+                totalPnL += pnl;
+
+                const timeElapsed = getTimeElapsed(pos.entryTime);
+                const pnlClass = pnl >= 0 ? 'positive' : 'negative';
+
+                html += `
+                    <div class="position-item">
+                        <div class="position-header">
+                            <span>${pos.strike} <span class="position-type ${pos.type.toLowerCase()}">${pos.type}</span></span>
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">${timeElapsed}</span>
+                        </div>
+                        <div class="position-info">
+                            <div>Entry: ₹${pos.entry.toFixed(2)}</div>
+                            <div>Current: ₹${currentLtp.toFixed(2)}</div>
+                            <div>Qty: ${pos.qty}</div>
+                            <div>Cost: ₹${(pos.entry * pos.qty).toLocaleString()}</div>
+                        </div>
+                        <div class="position-pnl ${pnlClass}">
+                            ${pnl >= 0 ? '+' : ''}₹${pnl.toFixed(2)} (${pnlPercent}%)
+                        </div>
+                        <button class="btn-exit" onclick="exitTrade(${index})">EXIT @ ₹${currentLtp.toFixed(2)}</button>
+                    </div>
+                `;
+            });
+
+            portDiv.innerHTML = html;
+
+            // Update stats
+            document.getElementById('position-count').innerText = userData.positions.length;
+            const pnlEl = document.getElementById('total-pnl');
+            pnlEl.innerText = (totalPnL >= 0 ? '+' : '') + '₹' + totalPnL.toFixed(2);
+            pnlEl.className = totalPnL >= 0 ? 'positive' : 'negative';
+        }
+
+        // ============ EXIT TRADE ============
+        function exitTrade(index) {
+            const pos = userData.positions[index];
+            const exitPrice = (pos.type === 'CE') ?
+                Math.max(5, (niftyPrice - pos.strike) + 120) :
+                Math.max(5, (pos.strike - niftyPrice) + 120);
+
+            const revenue = pos.qty * exitPrice;
+            const pnl = revenue - (pos.entry * pos.qty);
+
+            userData.balance += revenue;
+            userData.positions.splice(index, 1);
+            saveData();
+
+            updateWalletDisplay();
+            renderPortfolio();
+
+            const pnlText = pnl >= 0 ? `+₹${pnl.toFixed(2)}` : `-₹${Math.abs(pnl).toFixed(2)}`;
+            showNotification(`✓ Position Closed | P&L: ${pnlText}`, "success");
+        }
+
+        // ============ UI UPDATE FUNCTIONS ============
+        function updateWalletDisplay() {
+            document.getElementById('wallet-balance').innerText = '₹' + userData.balance.toLocaleString();
+        }
+
+        function getTimeElapsed(startTime) {
+            const now = new Date();
+            const diff = Math.floor((now - startTime) / 1000);
+
+            if (diff < 60) return `${diff}s`;
+            if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+            return `${Math.floor(diff / 3600)}h`;
+        }
+
+        // ============ NOTIFICATIONS ============
+        function showNotification(message, type = 'success') {
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+
+            setTimeout(() => {
+                notif.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notif.remove(), 300);
+            }, 2500);
+        }
+
+        // ============ INITIALIZATION ============
+        if (userData) {
+            initTerminal();
+        }
+
+        console.log('🚀 Pro-Trade Terminal Loaded');
+    </script>
+</body>
+</html>
